@@ -201,24 +201,29 @@
 			}
 		}
 	});
+
+	// new electricity dashboard
+	export let hideControls = true;
 </script>
 
-<div class="centered">
-	<div class="field has-addons">
-		{#each interactChoices as choice}
-			<p class="control pt-2">
-				<button
-					class="button {`${choice === interactSelected ? 'is-info is-light is-active' : ''}`}"
-					on:click={() => {
-						interactSelected = choice;
-					}}
-				>
-					<span>{choice}</span>
-				</button>
-			</p>
-		{/each}
+{#if !hideControls}
+	<div class="centered">
+		<div class="field has-addons">
+			{#each interactChoices as choice}
+				<p class="control pt-2">
+					<button
+						class="button {`${choice === interactSelected ? 'is-info is-light is-active' : ''}`}"
+						on:click={() => {
+							interactSelected = choice;
+						}}
+					>
+						<span>{choice}</span>
+					</button>
+				</p>
+			{/each}
+		</div>
 	</div>
-</div>
+{/if}
 
 {#if interactSelected === HOVER}
 	<br />
@@ -226,9 +231,12 @@
 	<div class="title-text stats-location">{adminLocation}</div>
 	<br />
 	<VegaLite data={{ values: adminBarValues }} spec={getAdminSpec()} options={vegaOptions} />
-	<div class="subtitle-text">
-		Population in 2022: {format('.3~s')($admin.pop).replace(/NaN.*/, '').replace('G', 'B')}
-	</div>
+
+	{#if !hideControls}
+		<div class="subtitle-text">
+			Population in 2022: {format('.3~s')($admin.pop).replace(/NaN.*/, '').replace('G', 'B')}
+		</div>
+	{/if}
 {/if}
 {#if interactSelected === CLICK}
 	<br />

@@ -18,10 +18,7 @@
 	import { onMount, setContext } from 'svelte';
 	import type { PageData } from './$types';
 	import Charts from './components/Charts.svelte';
-	import DownloadData from './components/DownloadData.svelte';
-	import ElectricityControl from './components/ElectricityControl.svelte';
-	import IntroductionPanel from './components/IntroductionPanel.svelte';
-	import OverlayControl from './components/OverlayControl.svelte';
+	import TimeSlider from './components/TimeSlider.svelte';
 	import { ELECTRICITY_DATASETS } from './constansts';
 	import type { Dataset } from './interfaces';
 	import { hrea, map as mapStore, ml } from './stores';
@@ -154,13 +151,46 @@
 		loadRasterLayer();
 		loadAdmin(true);
 	};
+
+	// new electricity dashboard -- start
+	let POVERTY_ID = 'poverty';
+	const HREA_ID = 'HREA';
+	const ML_ID = 'ML';
+	const NONE_ID = 'NONE';
+
+	let electricityChoices = [
+		{ name: HREA_ID, icon: 'fas fa-plug-circle-bolt', title: 'High Resolution Electricity Access' },
+		{ name: ML_ID, icon: 'fas fa-laptop-code', title: 'Machine Learning' },
+		{ name: NONE_ID, icon: 'fas fa-ban', title: 'None' }
+	];
+	electricitySelected = electricityChoices[2];
+	let hideControls = true;
+	let showElectricityContent = false;
+	let showCompareContent = false;
+	let showAnalyseContent = false;
+
+	const clickElectrictyHandler = () => {
+		showElectricityContent = !showElectricityContent;
+		electricitySelected = showElectricityContent ? electricityChoices[0] : electricityChoices[2];
+	};
+
+	const clickCompareHandler = () => {
+		showCompareContent = !showCompareContent;
+	};
+
+	const clickAnalyseHandler = () => {
+		showAnalyseContent = !showAnalyseContent;
+	};
+	console.log(electricitySelected);
+	// new electricity dashboard -- end
 </script>
 
 <Header isPositionFixed={true} />
 
 <Sidebar show={true} position="left" bind:width={drawerWidth} bind:marginTop={$headerHeightStore}>
 	<div slot="content" class="drawer-content m-0 px-4 pt-4">
-		<p class="title is-4 m-0 p-0 pb-2 has-text-centered">UNDP Electricity Dashboard</p>
+		<!-- Old Code -->
+		<!-- <p class="title is-4 m-0 p-0 pb-2 has-text-centered">UNDP Electricity Dashboard</p>
 		<IntroductionPanel bind:showIntro />
 
 		{#if !showIntro}
@@ -180,8 +210,85 @@
 				<p class="title is-5 p-0 m-0 has-text-centered pb-2">Statistics - Download</p>
 				<DownloadData />
 			</div>
-		{/if}
+		{/if} -->
+
+		<!-- New Electricity Dashboard -->
+		<div class="py-4">
+			<h3 class="title is-6">DASHBOARD</h3>
+
+			<h1 class="title is-4">Affordable and clean energy</h1>
+
+			<div class="ed-box my-3">
+				<button
+					class="is-flex is-align-items-flex-start reset-element"
+					type="button"
+					on:click={clickElectrictyHandler}
+				>
+					<p class={showElectricityContent ? 'mb-3' : ''}>
+						Explore the evolution of electricity access at administrative level.
+					</p>
+					<img src="/assets/icons/information.svg" alt="Information" />
+				</button>
+
+				{#if showElectricityContent}
+					<div>
+						<div class="ed-box__sub ed-box__sub--yellow has-background-light mb-1 p-2">
+							Electrified
+						</div>
+						<div class="ed-box__sub ed-box__sub--black has-background-light p-2">
+							Without electricity
+						</div>
+					</div>
+					<div class="pos-fix has-background-white ed__slider py-1 px-3 box">
+						<TimeSlider
+							bind:electricitySelected
+							bind:loadLayer={loadRasterLayer}
+							bind:BEFORE_LAYER_ID={POVERTY_ID}
+						/>
+					</div>
+				{/if}
+			</div>
+
+			<div class="ed-box my-3">
+				<button
+					class="is-flex is-align-items-flex-start reset-element"
+					type="button"
+					on:click={clickCompareHandler}
+				>
+					<p>Compare empirical with maschine learning data.</p>
+					<img src="/assets/icons/information.svg" alt="Information" />
+				</button>
+
+				{#if showCompareContent}
+					<div>
+						<!-- content later -->
+					</div>
+				{/if}
+			</div>
+
+			<div class="ed-box my-3">
+				<button
+					class="is-flex is-align-items-flex-start reset-element"
+					type="button"
+					on:click={clickAnalyseHandler}
+				>
+					<p>Analyse bivariate data for wealth and access to electricity</p>
+					<img src="/assets/icons/information.svg" alt="Information" />
+				</button>
+
+				{#if showAnalyseContent}
+					<div>
+						<!-- content later -->
+					</div>
+				{/if}
+			</div>
+
+			<div class="box">
+				<Charts bind:hideControls />
+			</div>
+		</div>
 	</div>
+
 	<div slot="main">
 		<div class="map" id="map" bind:this={mapContainer} />
 	</div>
@@ -204,4 +311,54 @@
 		flex-basis: 100%;
 		flex: 1;
 	}
+
+	// new electricity dashboard -- start
+	.ed {
+		&-box {
+			border: 1px solid #d4d6d8;
+			padding: 0.75rem;
+			// cursor: pointer;
+
+			&__sub {
+				border-radius: 8px;
+
+				&:before {
+					display: inline-block;
+					vertical-align: bottom;
+					content: '';
+					width: 24px;
+					height: 24px;
+					margin-right: 0.5rem;
+					border-radius: 50%;
+					background-color: #232e3d;
+				}
+
+				&--yellow:before {
+					background-color: #fbc412;
+				}
+			}
+		}
+
+		&__slider {
+			width: 300px;
+			top: 165px;
+			left: 367px;
+		}
+	}
+
+	.pos {
+		&-rel {
+			position: relative;
+		}
+
+		&-fix {
+			position: fixed;
+			z-index: 9;
+		}
+	}
+
+	.reset-element {
+		all: unset;
+	}
+	// new electricity dashboard -- end
 </style>
